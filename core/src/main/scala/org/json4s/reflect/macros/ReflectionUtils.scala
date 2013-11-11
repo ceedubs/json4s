@@ -45,7 +45,7 @@ object ReflectionUtils {
         case _ => None
       }
       primaryConstructor getOrElse {
-        fail(s"it has no apply method in a companion object that return type $returnType, and it doesn't have a primary constructor")
+        fail(s"it has no apply method in a companion object that returns type $returnType, and it doesn't have a primary constructor")
       }
     }
   }

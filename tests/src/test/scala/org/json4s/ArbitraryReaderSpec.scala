@@ -93,6 +93,17 @@ class ArbitraryReaderSpec extends Specification with ScalaCheck {
       val json = JObject(JField("simple", JObject(JField("foo", withNested.simple.foo))))
       arbitraryTypeReader[WithNestedCaseClass].read(json) must beEqualTo(withNested)
     }
+
+    "read a top-level value class" in prop { int: Int =>
+      val json = JObject(JField("int", JInt(int)))
+      arbitraryTypeReader[ValueClass].read(json) must beEqualTo(ValueClass(int))
+    }
+
+    "read a nested value class" in prop { int: Int =>
+      val json = JObject(JField("valueClass", JObject(JField("int", JInt(int)))))
+      arbitraryTypeReader[WithNestedValueClass].read(json) must beEqualTo(WithNestedValueClass(
+        valueClass = ValueClass(int = int)))
+    }
   }
 
 }
@@ -188,5 +199,13 @@ object ArbitraryReaderSpec {
   case class WithNestedCaseClass(simple: SimpleCaseClass)
 
   implicit val arbWithNestedCaseClass: Arbitrary[WithNestedCaseClass] = Arbitrary(Arbitrary.arbitrary[SimpleCaseClass].map(WithNestedCaseClass))
+
+  case class ValueClass(int: Int) extends AnyVal
+
+  implicit val arbValueClass: Arbitrary[ValueClass] = Arbitrary(Arbitrary.arbitrary[Int].map(ValueClass))
+
+  case class WithNestedValueClass(valueClass: ValueClass)
+
+  implicit val arbWithNestedValueClass: Arbitrary[WithNestedValueClass] = Arbitrary(Arbitrary.arbitrary[ValueClass].map(WithNestedValueClass))
 
 }

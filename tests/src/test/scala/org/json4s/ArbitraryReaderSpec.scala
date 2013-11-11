@@ -104,6 +104,11 @@ class ArbitraryReaderSpec extends Specification with ScalaCheck {
       arbitraryTypeReader[WithNestedValueClass].read(json) must beEqualTo(WithNestedValueClass(
         valueClass = ValueClass(int = int)))
     }
+
+    "read type with no instantiation parameters" in {
+      val json = JObject()
+      arbitraryTypeReader[NoParams].read(json).foo must beEqualTo("bar")
+    }
   }
 
 }
@@ -208,4 +213,7 @@ object ArbitraryReaderSpec {
 
   implicit val arbWithNestedValueClass: Arbitrary[WithNestedValueClass] = Arbitrary(Arbitrary.arbitrary[ValueClass].map(WithNestedValueClass))
 
+  class NoParams() {
+    val foo = "bar"
+  }
 }

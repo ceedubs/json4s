@@ -49,8 +49,6 @@ object ArbitrayTypeReaderMacros {
 
     if (!instantiationMethod.isPublic) fail(s"'$decodedMethodName' method is not public")
 
-    if(instantiationMethod.paramss.head.isEmpty) fail(s"'$decodedMethodName' does not take any parameters")
-
     val instantiationArgs = instantiationMethod.paramss.head.zipWithIndex map { case (param, index) =>
       val name = param.name.decoded
       val nameExpr = c.literal(name)

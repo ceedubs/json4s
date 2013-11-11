@@ -4,6 +4,7 @@ import scala.language.experimental.macros
 import scala.reflect.internal.{StdNames, SymbolTable, Definitions}
 import org.json4s.reflect.macros.ReflectionUtils
 
+/* This borrows heavily from code in Ficus: https://github.com/ceedubs/ficus */
 trait ArbitraryTypeReader {
   implicit def arbitraryTypeReader[T]: Reader[T] = macro ArbitrayTypeReaderMacros.arbitraryTypeReader[T]
 }

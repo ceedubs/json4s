@@ -3,8 +3,9 @@ package org.json4s
 import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck
 import JsonDSL._
-import org.scalacheck.{Gen, Arbitrary}
+import org.scalacheck.Arbitrary
 
+/* This borrows heavily from code in Ficus: https://github.com/ceedubs/ficus */
 class ArbitraryReaderSpec extends Specification with ScalaCheck {
   import ArbitraryReaderSpec._
   import ArbitraryTypeReader._

@@ -2,6 +2,7 @@ package org.json4s.reflect.macros
 
 import scala.reflect.macros.Context
 
+/* This borrows heavily from code in Ficus: https://github.com/ceedubs/ficus */
 object ReflectionUtils {
   def instantiationMethod[T : c.WeakTypeTag](c: Context, fail: String => Nothing): c.universe.MethodSymbol = {
     import c.universe._

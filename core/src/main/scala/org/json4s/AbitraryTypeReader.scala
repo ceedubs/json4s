@@ -43,8 +43,6 @@ object ArbitrayTypeReaderMacros {
                                                  companionObjectMaybe: Option[c.Symbol], fail: String => Nothing): c.Expr[T] = {
     import c.universe._
 
-    val returnType = c.weakTypeOf[T]
-
     val decodedMethodName = instantiationMethod.name.decoded
 
     if (!instantiationMethod.isPublic) fail(s"'$decodedMethodName' method is not public")
@@ -52,11 +50,11 @@ object ArbitrayTypeReaderMacros {
     val instantiationArgs = instantiationMethod.paramss.head.zipWithIndex map { case (param, index) =>
       val name = param.name.decoded
       val nameExpr = c.literal(name)
-      val returnType: Type = param.typeSignatureIn(c.weakTypeOf[T])
+      val paramType: Type = param.typeSignatureIn(c.weakTypeOf[T])
 
       companionObjectMaybe.filter(_ => param.asTerm.isParamWithDefault) map { companionObject =>
         val optionalReaderType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(
-          appliedType(weakTypeOf[Option[_]].typeConstructor, List(returnType))
+          appliedType(weakTypeOf[Option[_]].typeConstructor, List(paramType))
         ))
         val optionReader = c.inferImplicitValue(optionalReaderType, silent = true) match {
           case EmptyTree => fail(s"an implicit reader of type $optionalReaderType must be in scope to read parameter '$name' on '$decodedMethodName' method, since that parameter has a default value")
@@ -70,7 +68,7 @@ object ArbitrayTypeReaderMacros {
           Select(Ident(companionObject), newTermName(getter.encoded))
         }))
       } getOrElse {
-        val readerType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(returnType))
+        val readerType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(paramType))
         val reader = c.inferImplicitValue(readerType, silent = true) match {
           case EmptyTree => fail(s"an implicit reader of type $readerType must be in scope to read parameter '$name' on '$decodedMethodName' method")
           case x => x
@@ -80,6 +78,7 @@ object ArbitrayTypeReaderMacros {
       }
     }
 
+    val returnType = c.weakTypeOf[T]
     val instantiationObject = companionObjectMaybe.filterNot(_ =>
       instantiationMethod.isConstructor
     ).map(Ident(_)).getOrElse(New(Ident(returnType.typeSymbol)))

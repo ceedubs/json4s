@@ -56,14 +56,14 @@ object ArbitrayTypeReaderMacros {
       val nameExpr = c.literal(name)
       val returnType: Type = param.typeSignatureIn(c.weakTypeOf[T])
 
-      val readerType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(returnType))
-      val reader = c.inferImplicitValue(readerType, silent = true) match {
-        case EmptyTree => fail(s"an implicit reader of type $readerType must be in scope to read parameter '$name' on '$decodedMethodName' method")
-        case x => x
-      }
-
       companionObjectMaybe.filter(_ => param.asTerm.isParamWithDefault) map { companionObject =>
-        val optionReader = Apply(Select(reify(DefaultReaders).tree, newTermName("OptionReader")), List(reader))
+        val optionalReaderType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(
+          appliedType(weakTypeOf[Option[_]].typeConstructor, List(returnType))
+        ))
+        val optionReader = c.inferImplicitValue(optionalReaderType, silent = true) match {
+          case EmptyTree => fail(s"an implicit reader of type $optionalReaderType must be in scope to read parameter '$name' on '$decodedMethodName' method, since that parameter has a default value")
+          case x => x
+        }
         val argValueMaybe = readValue(c)(jValue, nameExpr, optionReader)
         Apply(Select(argValueMaybe.tree, newTermName("getOrElse")), List({
           // fall back to default value for param
@@ -72,6 +72,11 @@ object ArbitrayTypeReaderMacros {
           Select(Ident(companionObject), newTermName(getter.encoded))
         }))
       } getOrElse {
+        val readerType = appliedType(weakTypeOf[Reader[_]].typeConstructor, List(returnType))
+        val reader = c.inferImplicitValue(readerType, silent = true) match {
+          case EmptyTree => fail(s"an implicit reader of type $readerType must be in scope to read parameter '$name' on '$decodedMethodName' method")
+          case x => x
+        }
         val argValue = readValue(c)(jValue, nameExpr, reader)
         argValue.tree
       }
